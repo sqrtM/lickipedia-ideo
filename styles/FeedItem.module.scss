@@ -1,0 +1,19 @@
+
+.feedButtons {
+    display: flex;
+    color: #03DAC6;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    font-size: small;
+    padding: 1px;
+}
+
+#date {
+    font-size: x-small;
+}
+
+.feeditem {
+    border: 2px solid #03DAC6;
+    margin-top: 2px;
+}
