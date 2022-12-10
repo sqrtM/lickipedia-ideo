@@ -1,6 +1,7 @@
 // utility functions and types which are used across the app
 
 import * as abc from 'abcjs';
+import { AbcVisualParams } from 'abcjs';
 
 export type feedItemType = [
     uniqueID: string,
@@ -20,7 +21,7 @@ export const renderAbcNotation = (ID: string, abcNotation: string, parserParams:
 // i believe this is because  { responsive: "resize" } overrides the classname of the .svg, and gets
 // rid of the "onHover" command. this could probably be DOUBLY overridden, but that seems quite 
 // weird for a relatively minor problem. Just make sure there is no "resposive" on the saved items.
-export const defaultFeedParams = {
+export const defaultFeedParams: AbcVisualParams = {
     responsive: "resize",
     staffwidth: 720,
     wrap: {
