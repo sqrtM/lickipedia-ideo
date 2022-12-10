@@ -1,13 +1,18 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from '../styles/Feed.module.scss';
 
-import FeedItem from './FeedItem';
+const FeedList = React.lazy(() => import('./FeedItem'));
 import RightColumn from './RightColumn';
 import LeftColumn from './LeftColumn';
 import { feedItemType, defaultFeedParams } from './util';
+
+import Async from 'react-promise'
+
+import PocketBase from 'pocketbase';
+const client = new PocketBase('http://127.0.0.1:8090');
 
 
 // why UUID? Because other serialization functions
@@ -35,7 +40,7 @@ export interface IFeedState {
 }
 
 
-export default function Feed() {
+export default function Feed(): JSX.Element {
 
   const [feedItemList, setFeedItemList] = useState<IFeedState>({
     title: '',
@@ -72,10 +77,16 @@ export default function Feed() {
   // this formats a UUID, a tuneString, the default parameters;
   // and a locale string which gets sent into the history 
   // to be sent into the FeedItems.
-  function handleSubmit(event: { preventDefault: () => void; }): void {
+  function handleSubmit(event: { preventDefault: () => void; }) {
     let newString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`;
     let params: AbcVisualParams = defaultFeedParams;
     let newFeedItem: feedItemType = [uuidv4(), newString, params, feedItemList.parent, new Date().toLocaleString()];
+    client.collection("licks").create({
+      uuid: newFeedItem[0],
+      musicstring: newFeedItem[1],
+      parent: newFeedItem[3],
+      date: newFeedItem[4],
+    });
     setFeedItemList({
       ...feedItemList,    // clear state on submit.
       title: '',
@@ -125,6 +136,7 @@ export default function Feed() {
       parent: fork[0],
     });
   }
+
   return (
     <div id={styles.window}>
       <div id={styles.WindowLeftCol}>
@@ -172,12 +184,22 @@ export default function Feed() {
           </form>
         </div>
         <div>
-          <FeedItem
-            historyFeed={feedItemList.history}
-            parserParams={defaultFeedParams}
-            retrieveSavedLicks={retrieveSavedLicks}
-            recieveFork={recieveFork}
-          />
+          <Suspense fallback={<h1>Chargement...</h1>}>
+            <FeedList 
+            FeedItemProps={{
+              parserParams: defaultFeedParams,
+              retrieveSavedLicks: retrieveSavedLicks,
+              recieveFork: recieveFork,
+              historyFeed: feedItemList.history,
+            }}
+            FeedItems={{
+              uuid: '',
+              musicstring: '',
+              parent: '',
+              date: ''
+            }}            
+            />
+          </Suspense>
         </div>
       </div>
       <div id={styles.WindowRightCol}>

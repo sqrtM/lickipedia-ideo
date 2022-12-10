@@ -1,5 +1,4 @@
 import { renderAbc } from 'abcjs';
-import * as React from 'react';
 import styles from '../styles/RightColumn.module.scss'
 import { feedItemType } from "./util"
 
@@ -28,24 +27,18 @@ const defaultSavedParams = {
 }
 
 
-export default class RightColumn extends React.Component<IRightColumnProps> {
-  constructor(props: IRightColumnProps) {
-    super(props);
-    this.handleHover = this.handleHover.bind(this);
-  }
+export default function RightColumn(RightColumnProps: IRightColumnProps){
 
-  handleHover = () => this.props.savedNotation.forEach(i => renderAbc(`abcjs-saved-${i[0]}`, i[1], defaultSavedParams));
+  const handleHover = () => RightColumnProps.savedNotation.forEach(i => renderAbc(`abcjs-saved-${i[0]}`, i[1], defaultSavedParams));
 
-  public render(): JSX.Element {
     return (
       <div className={styles.rightColumn}>
-        {this.props.savedLicks.map(i =>
+        {RightColumnProps.savedLicks.map(i =>
           <div key={`RCdiv-${Math.random() + Date.now()}`} className={styles.savedLicks}>
-            <span className={styles.lickName} onMouseEnter={this.handleHover} >{i}</span>
+            <span className={styles.lickName} onMouseEnter={handleHover} >{i}</span>
             <div className={styles.tooltip} id={`abcjs-saved-${i}`} />
           </div>
         )}
       </div>
     );
   }
-}
