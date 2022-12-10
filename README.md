@@ -1,34 +1,23 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## lickipedia 
+### a twitter-style approach to sharing and saving your favorite licks.
 
-## Getting Started
+made possible through the wonders of the [abc music notation](https://abcnotation.com/), paul rosen's [abcjs](https://github.com/paulrosen/abcjs), and a couple peeks at rigo bauer's [react snippets](https://github.com/rigobauer/react-abcjs) (this stuff was surprisingly tricky to get to render in react and keep unique refs and ids etc etc).
 
-First, run the development server:
+![image](https://user-images.githubusercontent.com/79169638/199057720-836f78f7-b2f9-416e-adcd-e06d7c387581.png)
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+built with next.js and typescript
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## features 
+currently, there is 
+1. a fairly robust collapsable in-browser editor for composing your own music in real time
+2. the ability to save your favorite licks to the sidebar for easy access
+3. the ability to "fork" licks, giving you a full copy of the original lick to edit, which will then show the parent ID of the lick you forked it from, allowing you to trace the lineage of an idea back, sort of like how it works on something like glslSandbox.
+4. the ability to transpose all licks on your feed, making it extra easy to learn your next cool ii-V-I in all 12 keys.
+5. a pocketbase-based backend to save all of your licks for future reference
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+there will be more cool stuff to come, as well!
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## want to try ? 
+i'm currently having some issues getting everything deployed properly (vercel having some issues at compile time with the abcjs api...), so if you'd like to try the app, just download the repo and run the 'npm run dev' script. everything should work just fine!
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+thanks, and happy practicing! 
