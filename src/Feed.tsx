@@ -1,15 +1,13 @@
 'use client'
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from '../styles/Feed.module.scss';
 
-const FeedList = React.lazy(() => import('./FeedItem'));
+import FeedItem from './FeedItem';
 import RightColumn from './RightColumn';
 import LeftColumn from './LeftColumn';
 import { feedItemType, defaultFeedParams } from './util';
-
-import Async from 'react-promise'
 
 import PocketBase from 'pocketbase';
 const client = new PocketBase('http://127.0.0.1:8090');
@@ -22,6 +20,19 @@ const client = new PocketBase('http://127.0.0.1:8090');
 // can also make unique URLs with this later.
 import { v4 as uuidv4 } from 'uuid';
 import { AbcVisualParams, Editor } from 'abcjs';
+
+
+export interface JSONinport {
+  "@collectionId": string,
+  "@collectionName": string,
+  created: string,
+  date: string,
+  id: string,
+  musicstring: string,
+  parent: string,
+  updated: string,
+  uuid: string,
+}
 
 export interface IFeedState {
   title: string;
@@ -38,7 +49,6 @@ export interface IFeedState {
 
   editorShown: boolean;
 }
-
 
 export default function Feed(): JSX.Element {
 
@@ -63,7 +73,24 @@ export default function Feed(): JSX.Element {
         warnings_id: "warnings",
         abcjsParams: defaultFeedParams,
       });
-  })
+  }, [feedItemList.editorShown])
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8090/api/collections/licks/records")
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json.items)
+        let newhist: feedItemType[] = [];
+        for (let i = 0; i < json.items.length; i++) {
+          newhist.unshift([json.items[i].uuid, json.items[i].musicstring, defaultFeedParams, json.items[i].parent, json.items[i].date]);
+        }
+        setFeedItemList({
+          ...feedItemList,
+          history: newhist,
+        })
+        console.log(newhist)
+      })
+  }, [feedItemList.savedNotation]);
 
   function handleChange(event: { target: { name: string, value: any; } }): void {
     const target = event.target;
@@ -87,6 +114,8 @@ export default function Feed(): JSX.Element {
       parent: newFeedItem[3],
       date: newFeedItem[4],
     });
+    alert('The following lick has been submitted: ' + newString);
+    event.preventDefault();
     setFeedItemList({
       ...feedItemList,    // clear state on submit.
       title: '',
@@ -95,13 +124,10 @@ export default function Feed(): JSX.Element {
       Clef: 'treble',
       music: '',
       parent: '',
-      history: [newFeedItem, ...feedItemList.history],
       savedNotation: [],
       savedLicks: [],
       editorShown: false,
     });
-    alert('The following lick has been submitted: ' + newString);
-    event.preventDefault();
   }
 
   // this takes the saved licks from the FeedItem component and sends them to be state,
@@ -184,22 +210,12 @@ export default function Feed(): JSX.Element {
           </form>
         </div>
         <div>
-          <Suspense fallback={<h1>Chargement...</h1>}>
-            <FeedList 
-            FeedItemProps={{
-              parserParams: defaultFeedParams,
-              retrieveSavedLicks: retrieveSavedLicks,
-              recieveFork: recieveFork,
-              historyFeed: feedItemList.history,
-            }}
-            FeedItems={{
-              uuid: '',
-              musicstring: '',
-              parent: '',
-              date: ''
-            }}            
-            />
-          </Suspense>
+          <FeedItem
+            historyFeed={feedItemList.history}
+            parserParams={defaultFeedParams}
+            retrieveSavedLicks={retrieveSavedLicks}
+            recieveFork={recieveFork}
+          />
         </div>
       </div>
       <div id={styles.WindowRightCol}>
