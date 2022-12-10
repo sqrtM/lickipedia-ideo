@@ -1,6 +1,6 @@
 'use client'
-import React from 'react';
-import autosize from 'autosize';
+import React, { useEffect, useState } from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import styles from '../styles/Feed.module.scss';
 
@@ -17,9 +17,6 @@ import { feedItemType, defaultFeedParams } from './util';
 // can also make unique URLs with this later.
 import { v4 as uuidv4 } from 'uuid';
 import { AbcVisualParams, Editor } from 'abcjs';
-
-export interface IFeedProps {
-}
 
 export interface IFeedState {
   title: string;
@@ -38,45 +35,22 @@ export interface IFeedState {
 }
 
 
-export default class Feed extends React.Component<IFeedProps, IFeedState> {
-  // this is declared as "any", because if I declare it as an HTML element,
-  // (which it is), it gets angry. any works, though, which is weird.
-  textarea: any;
-  constructor(props: IFeedProps) {
-    super(props);
+export default function Feed() {
 
-    this.state = {
-      title: '',
-      key: 'C',
-      composer: '',
-      Clef: 'treble',
-      music: '',
-      parent: '',
+  const [feedItemList, setFeedItemList] = useState<IFeedState>({
+    title: '',
+    key: 'C',
+    composer: '',
+    Clef: 'treble',
+    music: '',
+    parent: '',
+    history: [],
+    savedNotation: [],
+    savedLicks: [],
+    editorShown: false,
+  });
 
-      history: [],
-
-      savedNotation: [],
-      savedLicks: [],
-
-      editorShown: false,
-    };
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.retrieveSavedLicks = this.retrieveSavedLicks.bind(this);
-    this.recieveFork = this.recieveFork.bind(this);
-  }
-
-
-  componentDidMount(): void {
-    autosize(this.textarea);
-  }
-
-  // this creates the editor.
-  // however, it KEEPS CREATING
-  // the editor over and over.
-  // not efficent! can I fix this? ??? 
-  componentDidUpdate(): void {
+  useEffect(() => {
     const e = new Editor(
       "music",
       {
@@ -84,14 +58,13 @@ export default class Feed extends React.Component<IFeedProps, IFeedState> {
         warnings_id: "warnings",
         abcjsParams: defaultFeedParams,
       });
-    autosize.update(this.textarea)
-  }
+  })
 
-  handleChange(event: { target: { name: string, value: any; } }): void {
+  function handleChange(event: { target: { name: string, value: any; } }): void {
     const target = event.target;
     const name = target.name;
-    this.setState({
-      ...this.state,
+    setFeedItemList({
+      ...feedItemList,
       [name]: event.target.value,
     });
   }
@@ -99,21 +72,22 @@ export default class Feed extends React.Component<IFeedProps, IFeedState> {
   // this formats a UUID, a tuneString, the default parameters;
   // and a locale string which gets sent into the history 
   // to be sent into the FeedItems.
-  handleSubmit(event: { preventDefault: () => void; }): void {
-    let newString: string = `T:${this.state.title}\nM:4/4\nC:${this.state.composer}\nK:${this.state.key} clef=${this.state.Clef}\n${this.state.music}`;
+  function handleSubmit(event: { preventDefault: () => void; }): void {
+    let newString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`;
     let params: AbcVisualParams = defaultFeedParams;
-    let newFeedItem: feedItemType = [uuidv4(), newString, params, this.state.parent, new Date().toLocaleString()];
-    this.setState({
-      ...this.state,    // clear state on submit.
+    let newFeedItem: feedItemType = [uuidv4(), newString, params, feedItemList.parent, new Date().toLocaleString()];
+    setFeedItemList({
+      ...feedItemList,    // clear state on submit.
       title: '',
       key: 'C',
       composer: '',
       Clef: 'treble',
       music: '',
       parent: '',
-      // "unshift" the newFeedItem into the history.
-      // so it appears on top of the feed.
-      history: [newFeedItem, ...this.state.history],
+      history: [newFeedItem, ...feedItemList.history],
+      savedNotation: [],
+      savedLicks: [],
+      editorShown: false,
     });
     alert('The following lick has been submitted: ' + newString);
     event.preventDefault();
@@ -121,13 +95,13 @@ export default class Feed extends React.Component<IFeedProps, IFeedState> {
 
   // this takes the saved licks from the FeedItem component and sends them to be state,
   // so they can be sent to the RightColumn.
-  retrieveSavedLicks = (id: string): void => {
-    let newSavedNotation: feedItemType[] = [...this.state.savedNotation];
-    if (!this.state.savedLicks.includes(id)) {
-      this.state.history.forEach(j => { if (j.includes(id)) { newSavedNotation.unshift(j) } })
-      this.setState({
-        ...this.state,
-        savedLicks: [...this.state.savedLicks, id],
+  function retrieveSavedLicks(id: string): void {
+    let newSavedNotation: feedItemType[] = [...feedItemList.savedNotation];
+    if (!feedItemList.savedLicks.includes(id)) {
+      feedItemList.history.forEach(j => { if (j.includes(id)) { newSavedNotation.unshift(j) } })
+      setFeedItemList({
+        ...feedItemList,
+        savedLicks: [...feedItemList.savedLicks, id],
         savedNotation: [...newSavedNotation]
       });
     }
@@ -137,12 +111,12 @@ export default class Feed extends React.Component<IFeedProps, IFeedState> {
   // put it into state. this will populate
   // the text fields and create the readonly
   // parent field to put on the new child lick
-  recieveFork = (fork: feedItemType): void => {
+  const recieveFork = (fork: feedItemType): void => {
     // lots of string manip to get the 'tune object'
     // to split properly into the different text fields
     let musicArray = fork[1].split(`\n`, 5);
-    this.setState({
-      ...this.state,
+    setFeedItemList({
+      ...feedItemList,
       title: musicArray[0].split(":")[1],
       composer: musicArray[2].split(":")[1],
       key: musicArray[3].split(":")[1].split(" ")[0],
@@ -151,72 +125,68 @@ export default class Feed extends React.Component<IFeedProps, IFeedState> {
       parent: fork[0],
     });
   }
-
-  public render(): JSX.Element {
-    return (
-      <div id={styles.window}>
-        <div id={styles.WindowLeftCol}>
-          <LeftColumn />
-        </div>
-        <div className={styles.feed}>
-          <div id={styles.inputfield}>
-            <form id={styles.form} onSubmit={this.handleSubmit}>
-              <label>
-                <span id={styles.inputTopRow}>
-                  <input type='text' name='title' placeholder='title' value={this.state.title} onChange={this.handleChange} />
-                  <input type='text' name='key' placeholder='key' value={this.state.key} onChange={this.handleChange} />
+  return (
+    <div id={styles.window}>
+      <div id={styles.WindowLeftCol}>
+        <LeftColumn />
+      </div>
+      <div className={styles.feed}>
+        <div id={styles.inputfield}>
+          <form id={styles.form} onSubmit={handleSubmit}>
+            <label>
+              <span id={styles.inputTopRow}>
+                <input type='text' name='title' placeholder='title' value={feedItemList.title} onChange={handleChange} />
+                <input type='text' name='key' placeholder='key' value={feedItemList.key} onChange={handleChange} />
+              </span>
+              <span className={styles.inputRowRow}>
+                <input type='text' name='composer' placeholder='composer' value={feedItemList.composer} onChange={handleChange} />
+                <span id={styles.radio}>
+                  <input type="radio" name='Clef' value='treble' onChange={handleChange} checked={feedItemList.Clef === 'treble'} /> treble
+                  <input type="radio" name='Clef' value='bass' onChange={handleChange} checked={feedItemList.Clef === 'bass'} /> bass
                 </span>
-                <span className={styles.inputRowRow}>
-                  <input type='text' name='composer' placeholder='composer' value={this.state.composer} onChange={this.handleChange} />
-                  <span id={styles.radio}>
-                    <input type="radio" name='Clef' value='treble' onChange={this.handleChange} checked={this.state.Clef === 'treble'} /> treble
-                    <input type="radio" name='Clef' value='bass' onChange={this.handleChange} checked={this.state.Clef === 'bass'} /> bass
-                  </span>
+              </span>
+              <div className={styles.inputRowCol}>
+                <TextareaAutosize
+                  name='music'
+                  id="music"
+                  placeholder='music'
+                  value={feedItemList.music}
+                  onChange={handleChange}
+                  minRows={1}
+                />
+                <span className={styles.parent}>
+                  {feedItemList.parent &&
+                    <input type='textarea' value={feedItemList.parent} readOnly />
+                  }
                 </span>
-                <div className={styles.inputRowCol}>
-                  <textarea 
-                    name='music' 
-                    id="music" 
-                    placeholder='music' 
-                    value={this.state.music} 
-                    onChange={this.handleChange} 
-                    ref={c => (this.textarea = c)} 
-                    rows={1} 
-                  />
-                  <span className={styles.parent}>
-                    {this.state.parent &&
-                      <input type='textarea' value={this.state.parent} readOnly />
-                    }
-                  </span>
-                </div>
-              </label>
-              <input type='button' name='editor' value='editor' onClick={() => this.setState({ editorShown: !this.state.editorShown })} />
-              {this.state.editorShown &&
-                <div>
-                  <div id="paper"></div>
-                  <div id="warnings" style={{ color: "#BB68FC" }}></div>
-                </div>
-              }
-              <input type="submit" value='submit' />
-            </form>
-          </div>
-          <div>
-            <FeedItem
-              historyFeed={this.state.history}
-              parserParams={defaultFeedParams}
-              retrieveSavedLicks={this.retrieveSavedLicks}
-              recieveFork={this.recieveFork}
-            />
-          </div>
+              </div>
+            </label>
+            <input type='button' name='editor' value='editor' onClick={() => setFeedItemList({ ...feedItemList, editorShown: !feedItemList.editorShown })} />
+            {feedItemList.editorShown &&
+              <div>
+                <div id="paper"></div>
+                <div id="warnings" style={{ color: "#BB68FC" }}></div>
+              </div>
+            }
+            <input type="submit" value='submit' />
+          </form>
         </div>
-        <div id={styles.WindowRightCol}>
-          <RightColumn
-            savedLicks={this.state.savedLicks}
-            historyFeed={this.state.history}
-            savedNotation={this.state.savedNotation}
+        <div>
+          <FeedItem
+            historyFeed={feedItemList.history}
+            parserParams={defaultFeedParams}
+            retrieveSavedLicks={retrieveSavedLicks}
+            recieveFork={recieveFork}
           />
         </div>
       </div>
-    );
-  }
+      <div id={styles.WindowRightCol}>
+        <RightColumn
+          savedLicks={feedItemList.savedLicks}
+          historyFeed={feedItemList.history}
+          savedNotation={feedItemList.savedNotation}
+        />
+      </div>
+    </div>
+  );
 }
