@@ -1,4 +1,5 @@
 import { renderAbc } from 'abcjs';
+import { useState } from 'react';
 import styles from '../styles/RightColumn.module.scss'
 import { feedItemType } from "./util"
 
@@ -27,11 +28,46 @@ const defaultSavedParams = {
 }
 
 
-export default function RightColumn(RightColumnProps: IRightColumnProps){
+export default function RightColumn(RightColumnProps: IRightColumnProps) {
+
+  const [loginInfo, setLoginInfo] = useState({
+    isLoggedIn: false,
+    user: "",
+    pass: "",
+  });
 
   const handleHover = () => RightColumnProps.savedNotation.forEach(i => renderAbc(`abcjs-saved-${i[0]}`, i[1], defaultSavedParams));
+  const handleChange = (event: any) => {
+    const target = event.target;
+    const name = target.name;
+    setLoginInfo({
+      ...loginInfo,
+      [name]: event.target.value,
+    });
+  }
+  const handleSignIn = (event: any) => {
+    event.preventDefault();
+    fetch("http://127.0.0.1:8090/api/users")
+      .then((res) => res.json())
+      .then((json) => {
+        console.log(json)})
+    setLoginInfo({
+      ...loginInfo,
+      user: "",
+      pass: ""
+    })
+  }
 
-    return (
+  return (
+    <div>
+      {!loginInfo.isLoggedIn ? <div className={styles.logininfo}>
+        <form>
+          <input type="text" name="user" value={loginInfo.user} placeholder="user" onChange={handleChange} />
+          <input type="text" name="pass" value={loginInfo.pass} placeholder="pass" onChange={handleChange} />
+          <input type="submit" value="sign in" onClick={handleSignIn} />
+        </form>
+        <input type="button" value="sign up" />
+      </div> : "welcome user" }
       <div className={styles.rightColumn}>
         {RightColumnProps.savedLicks.map(i =>
           <div key={`RCdiv-${Math.random() + Date.now()}`} className={styles.savedLicks}>
@@ -40,5 +76,6 @@ export default function RightColumn(RightColumnProps: IRightColumnProps){
           </div>
         )}
       </div>
-    );
-  }
+    </div>
+  );
+}
