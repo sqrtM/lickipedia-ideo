@@ -1,7 +1,7 @@
 ## lickipedia 
 ### a twitter-style approach to sharing and saving your favorite licks.
 
-made possible through the wonders of the [abc music notation](https://abcnotation.com/), paul rosen's [abcjs](https://github.com/paulrosen/abcjs), and a couple peeks at rigo bauer's [react snippets](https://github.com/rigobauer/react-abcjs) (this stuff was surprisingly tricky to get to render in react and keep unique refs and ids etc etc).
+made possible through the wonders of the [abc music notation](https://abcnotation.com/), paul rosen's [abcjs](https://github.com/paulrosen/abcjs), and a couple peeks at rigo bauer's [react snippets](https://github.com/rigobauer/react-abcjs) (this stuff was surprisingly tricky to get to render in react and keep unique refs and ids etc etc). the notation itself is hosted on a postgres server and controlled via [my PHP controller](https://github.com/sqrtM/lickiPHPedia).
 
 ![image](https://user-images.githubusercontent.com/79169638/199057720-836f78f7-b2f9-416e-adcd-e06d7c387581.png)
 
@@ -13,7 +13,12 @@ currently, there is
 2. the ability to save your favorite licks to the sidebar for easy access
 3. the ability to "fork" licks, giving you a full copy of the original lick to edit, which will then show the parent ID of the lick you forked it from, allowing you to trace the lineage of an idea back, sort of like how it works on something like glslSandbox.
 4. the ability to transpose all licks on your feed, making it extra easy to learn your next cool ii-V-I in all 12 keys.
-5. a pocketbase-based backend to save all of your licks for future reference
+5. a postgres backend to save all of your licks for future reference
+
+soon, there will be 
+1. logins and users. licks will probably remain anon, but i want users to be able to save their own licks and other cool licks they find for future reference.
+2. easy downloading of the svg files, so you can print them.
+3. better editor.
 
 there will be more cool stuff to come, as well!
 
