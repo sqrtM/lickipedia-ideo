@@ -9,10 +9,6 @@ import RightColumn from './RightColumn';
 import LeftColumn from './LeftColumn';
 import { feedItemType, defaultFeedParams } from './util';
 
-import PocketBase from 'pocketbase';
-const client = new PocketBase('http://127.0.0.1:8090');
-
-
 // why UUID? Because other serialization functions
 // would cause different floating point problems and
 // other weird issues. giving each lick a UUID means
@@ -20,19 +16,7 @@ const client = new PocketBase('http://127.0.0.1:8090');
 // can also make unique URLs with this later.
 import { v4 as uuidv4 } from 'uuid';
 import { AbcVisualParams, Editor } from 'abcjs';
-
-
-export interface JSONinport {
-  "@collectionId": string,
-  "@collectionName": string,
-  created: string,
-  date: string,
-  id: string,
-  musicstring: string,
-  parent: string,
-  updated: string,
-  uuid: string,
-}
+import axios from 'axios';
 
 export interface IFeedState {
   title: string;
@@ -50,6 +34,20 @@ export interface IFeedState {
   editorShown: boolean;
 }
 
+
+/*
+TODO : 
+1. change tuples to objects. Tuples are cringe. (specifically with FeedItemType)
+2. change the single STATE field into being a reducer, so it's a little cleaner. 
+3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
+4. Fix the editor passive event listener problem. It's slowing the page down like crazy. 
+5. Create a USER sql table and re-write the RightColumn to connect to it. 
+6. Finish the CRUD commands.
+    - Specifically, create an "admin" type of user who can DELETE and EDIT all posts.
+    - perhaps allow users to EDIT their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
+7. Create a loading animation. Just something simple, like on the blog.  
+*/
+
 export default function Feed(): JSX.Element {
 
   const [feedItemList, setFeedItemList] = useState<IFeedState>({
@@ -66,23 +64,22 @@ export default function Feed(): JSX.Element {
   });
 
   useEffect(() => {
-    const e = new Editor(
+    new Editor(
       "music",
       {
         canvas_id: "paper",
         warnings_id: "warnings",
         abcjsParams: defaultFeedParams,
       });
-  }, [feedItemList.editorShown])
+  }, [feedItemList.history])
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8090/api/collections/licks/records")
-      .then((res) => res.json())
-      .then((json) => {
-        console.log(json.items)
+    axios.get("http://127.0.0.1:8000/api/licks")
+      .then((res) => {
+        console.log(res.data)
         let newhist: feedItemType[] = [];
-        for (let i = 0; i < json.items.length; i++) {
-          newhist.unshift([json.items[i].uuid, json.items[i].musicstring, defaultFeedParams, json.items[i].parent, json.items[i].date]);
+        for (let i = 0; i < res.data.length; i++) {
+          newhist.unshift([res.data[i].uuid, res.data[i].music_string, defaultFeedParams, res.data[i].parent, res.data[i].date]);
         }
         setFeedItemList({
           ...feedItemList,
@@ -108,9 +105,9 @@ export default function Feed(): JSX.Element {
     let newString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`;
     let params: AbcVisualParams = defaultFeedParams;
     let newFeedItem: feedItemType = [uuidv4(), newString, params, feedItemList.parent, new Date().toLocaleString()];
-    client.collection("licks").create({
+    axios.post("http://127.0.0.1:8000/api/licks", {
       uuid: newFeedItem[0],
-      musicstring: newFeedItem[1],
+      music_string: newFeedItem[1],
       parent: newFeedItem[3],
       date: newFeedItem[4],
     });
