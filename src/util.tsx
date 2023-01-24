@@ -3,13 +3,13 @@
 import * as abc from 'abcjs';
 import { AbcVisualParams } from 'abcjs';
 
-export type feedItemType = [
-    uniqueID: string,
-    musicNotation: string,
+export type feedItemType = {
+    uuid: string,
+    musicString: string,
     params: abc.AbcVisualParams,
     parent: string,
     date: string
-];
+};
 
 export const renderAbcNotation = (ID: string, abcNotation: string, parserParams: abc.AbcVisualParams): void => {
     abc.renderAbc(`abcjs-result-${ID}`, abcNotation, parserParams);

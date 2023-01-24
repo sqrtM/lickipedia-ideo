@@ -36,7 +36,7 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
     pass: "",
   });
 
-  const handleHover = () => RightColumnProps.savedNotation.forEach(i => renderAbc(`abcjs-saved-${i[0]}`, i[1], defaultSavedParams));
+  const handleHover = () => RightColumnProps.savedNotation.forEach(i => renderAbc(`abcjs-saved-${i.uuid}`, i.musicString, defaultSavedParams));
   const handleChange = (event: any) => {
     const target = event.target;
     const name = target.name;

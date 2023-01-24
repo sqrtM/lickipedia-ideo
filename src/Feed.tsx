@@ -17,6 +17,7 @@ import { feedItemType, defaultFeedParams } from './util'
 import { v4 as uuidv4 } from 'uuid'
 import { AbcVisualParams, Editor } from 'abcjs'
 import axios from 'axios'
+import Loading from './Loading'
 
 export interface IFeedState {
   title: string
@@ -34,44 +35,50 @@ export interface IFeedState {
   editorShown: boolean
 }
 
+const defaultFeedState: IFeedState = {
+  title: '',
+  key: 'C',
+  composer: '',
+  Clef: 'treble',
+  music: '',
+  parent: '',
+  history: [],
+
+  savedNotation: [],
+  savedLicks: [],
+
+  editorShown: false,
+}
+
 /*
 TODO : 
-1. change tuples to objects. Tuples are cringe. (specifically with FeedItemType)
+DONE ==== 1. change tuples to objects. Tuples are cringe. (specifically with FeedItemType)
 2. change the single STATE field into being a reducer, so it's a little cleaner. 
 3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
 4. Fix the editor passive event listener problem. It's slowing the page down like crazy. 
 5. Create a USER sql table and re-write the RightColumn to connect to it. 
 6. Finish the CRUD commands.
-    - Specifically, create an "admin" type of user who can DELETE and EDIT all posts.
-    - perhaps allow users to EDIT their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
+    - Specifically, create an "admin" type of user who can DELETE and possibly even EDIT/PUT all posts.
+    - perhaps allow users to EDIT/DELETE their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
 7. Create a loading animation. Just something simple, like on the blog.  
 */
 
 export default function Feed(): JSX.Element {
-  const [feedItemList, setFeedItemList] = useState<IFeedState>({
-    title: '',
-    key: 'C',
-    composer: '',
-    Clef: 'treble',
-    music: '',
-    parent: '',
-    history: [],
-    savedNotation: [],
-    savedLicks: [],
-    editorShown: false,
-  });
+  const [feedItemList, setFeedItemList] = useState<IFeedState>(defaultFeedState)
+  const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
     new Editor('music', {
       canvas_id: 'paper',
       warnings_id: 'warnings',
       abcjsParams: defaultFeedParams,
-    });
-  }, [feedItemList.editorShown]);
+    })
+  }, [feedItemList.editorShown])
 
   useEffect(() => {
-    refreshFeed();
-  }, [feedItemList.savedNotation]);
+    setLoading(true)
+    refreshFeed()
+  }, [feedItemList.savedNotation])
 
   function handleChange(event: { target: { name: string; value: any } }): void {
     const target = event.target
@@ -79,30 +86,31 @@ export default function Feed(): JSX.Element {
     setFeedItemList({
       ...feedItemList,
       [name]: event.target.value,
-    });
+    })
   }
 
   // this formats a UUID, a tuneString, the default parameters;
   // and a locale string which gets sent into the history
   // to be sent into the FeedItems.
-  function handleSubmit(event: { preventDefault: () => void }) {
-    let newString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`
+  function handleSubmit(event: { preventDefault: () => void }): void {
+    setLoading(true)
+    let newMusicString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`
     let params: AbcVisualParams = defaultFeedParams
-    let newFeedItem: feedItemType = [
-      uuidv4(),
-      newString,
-      params,
-      feedItemList.parent,
-      new Date().toLocaleString(),
-    ];
+    let newFeedItem: feedItemType = {
+      uuid: uuidv4(),
+      musicString: newMusicString,
+      params: params,
+      parent: feedItemList.parent,
+      date: new Date().toLocaleString(),
+    }
     axios.post('http://127.0.0.1:8000/api/licks', {
-      uuid: newFeedItem[0],
-      music_string: newFeedItem[1],
-      parent: newFeedItem[3],
-      date: newFeedItem[4],
-    });
-    alert('The following lick has been submitted: ' + newString)
-    event.preventDefault();
+      uuid: newFeedItem.uuid,
+      music_string: newFeedItem.musicString,
+      parent: newFeedItem.parent,
+      date: newFeedItem.date,
+    })
+    alert('The following lick has been submitted: ' + newMusicString)
+    event.preventDefault()
     setFeedItemList({
       ...feedItemList, // clear state on submit.
       title: '',
@@ -113,25 +121,26 @@ export default function Feed(): JSX.Element {
       parent: '',
 
       editorShown: false,
-    });
-    refreshFeed();
+    })
+    refreshFeed()
   }
 
   // this takes the saved licks from the FeedItem component and sends them to be state,
   // so they can be sent to the RightColumn.
+  // there is almost certainly a MUCH more efficent way to do this...
   function retrieveSavedLicks(id: string): void {
     let newSavedNotation: feedItemType[] = [...feedItemList.savedNotation]
     if (!feedItemList.savedLicks.includes(id)) {
       feedItemList.history.forEach((j) => {
-        if (j.includes(id)) {
-          newSavedNotation.unshift(j);
+        if (!feedItemList.savedLicks.includes(j.uuid)) {
+          newSavedNotation.unshift(j)
         }
       })
       setFeedItemList({
         ...feedItemList,
         savedLicks: [...feedItemList.savedLicks, id],
         savedNotation: [...newSavedNotation],
-      });
+      })
     }
   }
 
@@ -142,7 +151,7 @@ export default function Feed(): JSX.Element {
   const recieveFork = (fork: feedItemType): void => {
     // lots of string manip to get the 'tune object'
     // to split properly into the different text fields
-    let musicArray = fork[1].split(`\n`, 5)
+    let musicArray = fork.musicString.split(`\n`, 5)
     setFeedItemList({
       ...feedItemList,
       title: musicArray[0].split(':')[1],
@@ -150,27 +159,28 @@ export default function Feed(): JSX.Element {
       key: musicArray[3].split(':')[1].split(' ')[0],
       Clef: musicArray[3].split('=')[1],
       music: musicArray[4],
-      parent: fork[0],
-    });
+      parent: fork.uuid,
+    })
   }
 
   const refreshFeed = (): void => {
     axios.get('http://127.0.0.1:8000/api/licks').then((res) => {
-      let newhist: feedItemType[] = [];
+      let newhist: feedItemType[] = []
       for (let i = 0; i < res.data.length; i++) {
-        newhist.unshift([
-          res.data[i].uuid,
-          res.data[i].music_string,
-          defaultFeedParams,
-          res.data[i].parent,
-          res.data[i].date,
-        ]);
+        newhist.unshift({
+          uuid: res.data[i].uuid,
+          musicString: res.data[i].music_string,
+          params: defaultFeedParams,
+          parent: res.data[i].parent,
+          date: res.data[i].date,
+        })
       }
       setFeedItemList({
         ...feedItemList,
         history: newhist,
-      });
-    });
+      })
+    })
+    setTimeout(() => setLoading(false), 1000)
   }
 
   return (
@@ -266,13 +276,17 @@ export default function Feed(): JSX.Element {
           </form>
         </div>
         <div>
-          <FeedItem
-            historyFeed={feedItemList.history}
-            parserParams={defaultFeedParams}
-            retrieveSavedLicks={retrieveSavedLicks}
-            recieveFork={recieveFork}
-            refresh={refreshFeed}
-          />
+          {loading ? (
+            <Loading />
+          ) : (
+            <FeedItem
+              historyFeed={feedItemList.history}
+              parserParams={defaultFeedParams}
+              retrieveSavedLicks={retrieveSavedLicks}
+              recieveFork={recieveFork}
+              refresh={refreshFeed}
+            />
+          )}
         </div>
       </div>
       <div id={styles.WindowRightCol}>
