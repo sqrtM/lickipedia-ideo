@@ -25,4 +25,6 @@ there will be more cool stuff to come, as well!
 ## want to try ? 
 i'm currently having some issues getting everything deployed properly (vercel having some issues at compile time with the abcjs api...), so if you'd like to try the app, just download the repo and run the 'npm run dev' script. everything should work just fine!
 
+in the meantime, i'm thinking about just moving the app to vite and deploying it on github pages as a SPA. we'll see. anyway.
+
 thanks, and happy practicing! 
