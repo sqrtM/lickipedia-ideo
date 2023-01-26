@@ -8,6 +8,7 @@ export interface IRightColumnProps {
   savedLicks: string[]
   historyFeed: feedItemType[]
   savedNotation: feedItemType[]
+  loginStatus: any
 }
 
 // using "responsive: "resize"" doesn't work with the saved ones, but it does work with the main feed,
@@ -35,10 +36,11 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
     password: '',
   })
 
-  const handleHover = () =>
+  const handleHover = () => {
     RightColumnProps.savedNotation.forEach((i) =>
       renderAbc(`abcjs-saved-${i.uuid}`, i.musicString, defaultSavedParams),
     )
+  }
 
   const handleChange = (event: any) => {
     const target = event.target
@@ -49,7 +51,7 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
     })
   }
 
-  // connect to postgres via PHP controller. 
+  // connect to postgres via PHP controller.
   // if the return statement is true, login was successful.
   const handleSignIn = (event: any): void => {
     axios
@@ -58,17 +60,24 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
         password: loginInfo.password,
       })
       .then((res) => {
-        res.data
-          ? setLoginInfo({
-              isLoggedIn: true,
-              email: '',
-              password: '',
-            })
-          : setLoginInfo({
-              isLoggedIn: false,
-              email: '',
-              password: '',
-            })
+        if (res.data) {
+          RightColumnProps.loginStatus({
+            isLoggedIn: true,
+            email: loginInfo.email,
+            password: loginInfo.password,
+          })
+          setLoginInfo({
+            isLoggedIn: true,
+            email: '',
+            password: '',
+          })
+        } else {
+          setLoginInfo({
+            isLoggedIn: false,
+            email: '',
+            password: '',
+          })
+        }
       })
     event.preventDefault()
   }

@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { AbcVisualParams, Editor } from 'abcjs'
 import axios from 'axios'
 import Loading from './Loading'
+const { parse: parsePostgres } = require('postgres-array')
 
 export interface IFeedState {
   title: string
@@ -52,20 +53,28 @@ const defaultFeedState: IFeedState = {
 
 /*
 TODO : 
-DONE ==== 1. change tuples to objects. Tuples are cringe. (specifically with FeedItemType)
+DONE ==== 1. change tuples to keyed objects. Tuples are cringe. (specifically with FeedItemType)
 2. change the single STATE field into being a reducer, so it's a little cleaner. 
 3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
 4. Fix the editor passive event listener problem. It's slowing the page down like crazy. 
-5. Create a USER sql table and re-write the RightColumn to connect to it. 
+DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to connect to it. 
+  (This is not properly implimented yet. the postgres table doesnt check for dupes, so we need to fix that
+    also, the rendering only works on the most recent one. clean up the @retrieveSavedLick function so both
+    of these functionalities can be impimented.)
 6. Finish the CRUD commands.
     - Specifically, create an "admin" type of user who can DELETE and possibly even EDIT/PUT all posts.
     - perhaps allow users to EDIT/DELETE their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
-7. Create a loading animation. Just something simple, like on the blog.  
+DONE ==== 7. Create a loading animation. Just something simple, like on the blog.  
 */
 
 export default function Feed(): JSX.Element {
   const [feedItemList, setFeedItemList] = useState<IFeedState>(defaultFeedState)
   const [loading, setLoading] = useState<boolean>(false)
+  const [parentLoginInfo, setParentLoginInfo] = useState({
+    isLoggedIn: false,
+    email: '',
+    password: '',
+  })
 
   useEffect(() => {
     new Editor('music', {
@@ -79,6 +88,18 @@ export default function Feed(): JSX.Element {
     setLoading(true)
     refreshFeed()
   }, [feedItemList.savedNotation])
+
+  useEffect(() => {
+    if (parentLoginInfo.isLoggedIn) {
+      axios
+        .post('http://127.0.0.1:8000/api/users/licks', {
+          email: parentLoginInfo.email,
+        })
+        .then((res) => {
+          setFeedItemList({ ...feedItemList, savedNotation: res.data })
+        })
+    }
+  }, [parentLoginInfo])
 
   function handleChange(event: { target: { name: string; value: any } }): void {
     const target = event.target
@@ -129,18 +150,45 @@ export default function Feed(): JSX.Element {
   // so they can be sent to the RightColumn.
   // there is almost certainly a MUCH more efficent way to do this...
   function retrieveSavedLicks(id: string): void {
-    let newSavedNotation: feedItemType[] = [...feedItemList.savedNotation]
-    if (!feedItemList.savedLicks.includes(id)) {
-      feedItemList.history.forEach((j) => {
-        if (!feedItemList.savedLicks.includes(j.uuid)) {
-          newSavedNotation.unshift(j)
-        }
+    if (!parentLoginInfo.isLoggedIn) {
+      let newSavedNotation: feedItemType[] = [...feedItemList.savedNotation]
+      if (!feedItemList.savedLicks.includes(id)) {
+        feedItemList.history.forEach((j) => {
+          if (!feedItemList.savedLicks.includes(j.uuid)) {
+            newSavedNotation.unshift(j)
+          }
+        })
+        setFeedItemList({
+          ...feedItemList,
+          savedLicks: [...feedItemList.savedLicks, id],
+          savedNotation: [...newSavedNotation],
+        })
+      }
+    } else {
+      let newSavedNotation: feedItemType[]
+      axios.patch('http://127.0.0.1:8000/api/users/licks', {
+        email: parentLoginInfo.email,
+        uuid: id,
       })
-      setFeedItemList({
-        ...feedItemList,
-        savedLicks: [...feedItemList.savedLicks, id],
-        savedNotation: [...newSavedNotation],
-      })
+      axios
+        .post('http://127.0.0.1:8000/api/users/licks', {
+          email: parentLoginInfo.email,
+        })
+        .then((res) => {
+          newSavedNotation = parsePostgres(res.data[0].saved_licks) //looks ugly, but just parses the postgres array.
+          if (!feedItemList.savedLicks.includes(id)) {
+            feedItemList.history.forEach((j) => {
+              if (!feedItemList.savedLicks.includes(j.uuid)) {
+                newSavedNotation.unshift(j)
+              }
+            })
+            setFeedItemList({
+              ...feedItemList,
+              savedLicks: [...feedItemList.savedLicks, id],
+              savedNotation: [...newSavedNotation],
+            })
+          }
+        })
     }
   }
 
@@ -186,6 +234,7 @@ export default function Feed(): JSX.Element {
   return (
     <div id={styles.window}>
       <div id={styles.WindowLeftCol}>
+        <div>{parentLoginInfo.isLoggedIn.toString()}</div>
         <LeftColumn />
       </div>
       <div className={styles.feed}>
@@ -294,6 +343,7 @@ export default function Feed(): JSX.Element {
           savedLicks={feedItemList.savedLicks}
           historyFeed={feedItemList.history}
           savedNotation={feedItemList.savedNotation}
+          loginStatus={setParentLoginInfo}
         />
       </div>
     </div>
