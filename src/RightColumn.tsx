@@ -51,11 +51,15 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
     })
   }
 
-  // connect to postgres via PHP controller.
-  // if the return statement is true, login was successful.
+  /**
+   * connect to postgres via PHP controller.
+   * if the return statement is true, login was successful.
+   * 
+   * @todo add a REAL pop up that tells you that the login was (un)successful
+   */
   const handleSignIn = (event: any): void => {
     axios
-      .post('http://127.0.0.1:8000/api/get_user', {
+      .post('http://127.0.0.1:8000/api/loginUser', {
         email: loginInfo.email,
         password: loginInfo.password,
       })
@@ -71,15 +75,23 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
             email: '',
             password: '',
           })
+          alert("login successful")
         } else {
           setLoginInfo({
             isLoggedIn: false,
             email: '',
             password: '',
           })
+          alert("login unsuccessful")
         }
       })
     event.preventDefault()
+  }
+
+  const handleLogout = () => {
+    setLoginInfo({ isLoggedIn: false, email: '', password: ''})
+    RightColumnProps.loginStatus({ isLoggedIn: false, email: '', password: '' })
+    alert("successfully logged out. come back soon.")
   }
 
   return (
@@ -106,7 +118,10 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
           <input type="button" value="sign up" />
         </div>
       ) : (
-        'welcome user'
+        <div>
+          welcome user
+          <input type="button" value="logout" onClick={handleLogout}/>
+        </div>
       )}
       <div className={styles.rightColumn}>
         {RightColumnProps.savedLicks.map((i) => (

@@ -56,7 +56,7 @@ TODO :
 DONE ==== 1. change tuples to keyed objects. Tuples are cringe. (specifically with FeedItemType)
 2. change the single STATE field into being a reducer, so it's a little cleaner. 
 3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
-4. Fix the editor passive event listener problem. It's slowing the page down like crazy. 
+4. Fix the editor passive event listener problem. 
 DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to connect to it. 
   (This is not properly implimented yet. the postgres table doesnt check for dupes, so we need to fix that
     also, the rendering only works on the most recent one. clean up the @retrieveSavedLick function so both
@@ -192,10 +192,12 @@ export default function Feed(): JSX.Element {
     }
   }
 
-  // take the info from a forked lick and
-  // put it into state. this will populate
-  // the text fields and create the readonly
-  // parent field to put on the new child lick
+  /** 
+   * take the info from a forked lick and 
+   * put it into state. this will populate 
+   * the text fields and create the readonly 
+   * parent field to put on the new child lick
+  */ 
   const recieveFork = (fork: feedItemType): void => {
     // lots of string manip to get the 'tune object'
     // to split properly into the different text fields
