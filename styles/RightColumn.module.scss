@@ -33,6 +33,19 @@
     color:#BB68FC
 }
 
+.parentLick {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    
+    position: -webkit-sticky;
+    /* Required for Safari */
+    position: sticky;
+    top: 0;
+    color:#03DAC6
+}
+
 .logininfo {
     display: flex;
     flex-direction: row;

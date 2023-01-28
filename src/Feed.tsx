@@ -65,6 +65,8 @@ DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to
     - Specifically, create an "admin" type of user who can DELETE and possibly even EDIT/PUT all posts.
     - perhaps allow users to EDIT/DELETE their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
 DONE ==== 7. Create a loading animation. Just something simple, like on the blog.  
+8. Change the FeedItem component from being ALL a single thing to each being their own instance of the component.
+9. Make good javadoc documentation for everything
 */
 
 export default function Feed(): JSX.Element {
@@ -75,6 +77,7 @@ export default function Feed(): JSX.Element {
     email: '',
     password: '',
   })
+  const [getParentFromFeedItem, setParentFromFeedItem] = useState({date: "", music_string: "", parent: "", uuid: ""});
 
   useEffect(() => {
     new Editor('music', {
@@ -227,16 +230,22 @@ export default function Feed(): JSX.Element {
       }
       setFeedItemList({
         ...feedItemList,
+        title: '',
+        key: 'C',
+        composer: '',
+        Clef: 'treble',
+        music: '',
+        parent: '',
         history: newhist,
+        editorShown: false
       })
     })
-    setTimeout(() => setLoading(false), 1000)
+    setTimeout(() => setLoading(false), 3000)
   }
 
   return (
     <div id={styles.window}>
       <div id={styles.WindowLeftCol}>
-        <div>{parentLoginInfo.isLoggedIn.toString()}</div>
         <LeftColumn />
       </div>
       <div className={styles.feed}>
@@ -336,6 +345,7 @@ export default function Feed(): JSX.Element {
               retrieveSavedLicks={retrieveSavedLicks}
               recieveFork={recieveFork}
               refresh={refreshFeed}
+              getParentFromFeedItem={setParentFromFeedItem}
             />
           )}
         </div>
@@ -346,6 +356,7 @@ export default function Feed(): JSX.Element {
           historyFeed={feedItemList.history}
           savedNotation={feedItemList.savedNotation}
           loginStatus={setParentLoginInfo}
+          parentSelectedFromFeedItem={getParentFromFeedItem}
         />
       </div>
     </div>

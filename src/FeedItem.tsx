@@ -11,6 +11,7 @@ interface IFeedItemProps {
   recieveFork: (i: feedItemType) => void
   historyFeed: feedItemType[]
   refresh: () => void
+  getParentFromFeedItem: any
 }
 
 export default function FeedItem(FeedItemProps: IFeedItemProps): JSX.Element {
@@ -39,6 +40,11 @@ export default function FeedItem(FeedItemProps: IFeedItemProps): JSX.Element {
     FeedItemProps.refresh()
     setTimeout(() => setLoading(false), 2000)
   }
+  const handleClickParent = (i: string): void => {
+    axios.post('http://127.0.0.1:8000/api/getLick', { uuid: i }).then((res) => {
+      FeedItemProps.getParentFromFeedItem(res.data[0])
+    })
+  }
 
   return loading ? (
     <Loading />
@@ -63,7 +69,13 @@ export default function FeedItem(FeedItemProps: IFeedItemProps): JSX.Element {
                 onChange={(e) => handleTranspose(e, i)}
               />
             </span>
-            {i.parent} <span id={styles.date}>{i.date}</span>
+            <span
+              style={{ textDecoration: 'underline dotted' }}
+              onClick={() => handleClickParent(i.parent)}
+            >
+              {i.parent}
+            </span>
+            <span id={styles.date}>{i.date}</span>
             <input
               type="button"
               value="delete"

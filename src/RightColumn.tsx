@@ -1,7 +1,8 @@
 import { renderAbc } from 'abcjs'
 import axios from 'axios'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from '../styles/RightColumn.module.scss'
+import Loading from './Loading'
 import { feedItemType } from './util'
 
 export interface IRightColumnProps {
@@ -9,6 +10,7 @@ export interface IRightColumnProps {
   historyFeed: feedItemType[]
   savedNotation: feedItemType[]
   loginStatus: any
+  parentSelectedFromFeedItem: any
 }
 
 // using "responsive: "resize"" doesn't work with the saved ones, but it does work with the main feed,
@@ -36,6 +38,14 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
     password: '',
   })
 
+  const [renderParent, setRenderParent] = useState(false)
+  const [nextAncestor, setNextAncestor] = useState<string>(
+    RightColumnProps.parentSelectedFromFeedItem.parent,
+  )
+  const [loading, setLoading] = useState<boolean>(false)
+
+
+  //this will need to be changed to an axios call
   const handleHover = () => {
     RightColumnProps.savedNotation.forEach((i) =>
       renderAbc(`abcjs-saved-${i.uuid}`, i.musicString, defaultSavedParams),
@@ -54,7 +64,7 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
   /**
    * connect to postgres via PHP controller.
    * if the return statement is true, login was successful.
-   * 
+   *
    * @todo add a REAL pop up that tells you that the login was (un)successful
    */
   const handleSignIn = (event: any): void => {
@@ -75,23 +85,85 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
             email: '',
             password: '',
           })
-          alert("login successful")
+          alert('login successful')
         } else {
           setLoginInfo({
             isLoggedIn: false,
             email: '',
             password: '',
           })
-          alert("login unsuccessful")
+          alert('login unsuccessful')
         }
       })
     event.preventDefault()
   }
 
   const handleLogout = () => {
-    setLoginInfo({ isLoggedIn: false, email: '', password: ''})
+    setLoginInfo({ isLoggedIn: false, email: '', password: '' })
     RightColumnProps.loginStatus({ isLoggedIn: false, email: '', password: '' })
-    alert("successfully logged out. come back soon.")
+    alert('successfully logged out. come back soon.')
+  }
+
+  const handleSignUp = (event: any) => {
+    axios
+      .post('http://127.0.0.1:8000/api/createUser', {
+        email: loginInfo.email,
+        password: loginInfo.password,
+      })
+      .then((res) => {
+        if (res.data) {
+          RightColumnProps.loginStatus({
+            isLoggedIn: true,
+            email: loginInfo.email,
+            password: loginInfo.password,
+          })
+          setLoginInfo({
+            isLoggedIn: true,
+            email: '',
+            password: '',
+          })
+          alert('account successfully created')
+        } else {
+          setLoginInfo({
+            isLoggedIn: false,
+            email: '',
+            password: '',
+          })
+          alert('problem with account creation. please try again.')
+        }
+      })
+    event.preventDefault()
+  }
+
+  useEffect(() => {
+    setRenderParent(true)
+    renderAbc(
+      'parentContainer',
+      RightColumnProps.parentSelectedFromFeedItem.music_string,
+      defaultSavedParams,
+    )
+    setNextAncestor(RightColumnProps.parentSelectedFromFeedItem.parent)
+  }, [RightColumnProps.parentSelectedFromFeedItem])
+
+  useEffect(() => {
+    if (renderParent === false) {
+      renderAbc('parentContainer', '', defaultSavedParams)
+    }
+  }, [renderParent])
+
+  const handleClickParent = (): void => {
+    axios
+      .post('http://127.0.0.1:8000/api/getLick', {
+        uuid: nextAncestor,
+      })
+      .then((res) => {
+        renderAbc(
+          'parentContainer',
+          res.data[0].music_string,
+          defaultSavedParams,
+        )
+        setNextAncestor(res.data[0].parent)
+      })
   }
 
   return (
@@ -115,15 +187,24 @@ export default function RightColumn(RightColumnProps: IRightColumnProps) {
             />
             <input type="submit" value="sign in" onClick={handleSignIn} />
           </form>
-          <input type="button" value="sign up" />
+          <input type="button" value="sign up" onClick={handleSignUp} />
         </div>
       ) : (
         <div>
           welcome user
-          <input type="button" value="logout" onClick={handleLogout}/>
+          <input type="button" value="logout" onClick={handleLogout} />
+          <div />
         </div>
       )}
       <div className={styles.rightColumn}>
+        <div
+          id="parentContainer"
+          className={styles.parentLick}
+          onClick={() => setRenderParent(false)}
+        />
+        <span onClick={handleClickParent} className={styles.parentLick}>
+          {renderParent ? nextAncestor : ''}
+        </span>
         {RightColumnProps.savedLicks.map((i) => (
           <div
             key={`RCdiv-${Math.random() + Date.now()}`}
