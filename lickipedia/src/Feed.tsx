@@ -1,4 +1,3 @@
-'use client'
 import { useEffect, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
 
@@ -18,7 +17,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { AbcVisualParams, Editor } from 'abcjs'
 import axios from 'axios'
 import Loading from './Loading'
-const { parse: parsePostgres } = require('postgres-array')
+import { parse as parsePostgres } from 'postgres-array'
 
 export interface IFeedState {
   title: string
@@ -178,8 +177,7 @@ export default function Feed(): JSX.Element {
           email: parentLoginInfo.email,
         })
         .then((res) => {
-          newSavedNotation = parsePostgres(res.data[0].saved_licks) //looks ugly, but just parses the postgres array.
-          if (!feedItemList.savedLicks.includes(id)) {
+          if (!feedItemList.savedLicks.includes(parsePostgres(res.data[0].saved_licks)[0])) {
             feedItemList.history.forEach((j) => {
               if (!feedItemList.savedLicks.includes(j.uuid)) {
                 newSavedNotation.unshift(j)
