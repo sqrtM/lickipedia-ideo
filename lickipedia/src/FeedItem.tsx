@@ -38,7 +38,7 @@ export default function FeedItem(FeedItemProps: IFeedItemProps): JSX.Element {
     setLoading(true)
     axios.delete('http://127.0.0.1:8000/api/licks', { data: { uuid: i } })
     FeedItemProps.refresh()
-    setTimeout(() => setLoading(false), 2000)
+    setTimeout(() => setLoading(false), 3000)
   }
   const handleClickParent = (i: string): void => {
     axios.post('http://127.0.0.1:8000/api/getLick', { uuid: i }).then((res) => {
