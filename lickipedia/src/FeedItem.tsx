@@ -5,11 +5,19 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Loading from './Loading'
 
+/*
+goal: turn this from one big component to several smaller instances of the component. 
+This wil be done by, instead of passing the entire historyFeed, passing just one instance of it.
+i.e., we map from outside rather than inside. 
+*/
+
 interface IFeedItemProps {
   parserParams: AbcVisualParams.AbcVisualParams
   retrieveSavedLicks: (i: string) => void
   recieveFork: (i: feedItemType) => void
+
   historyFeed: feedItemType[]
+  
   refresh: () => void
   getParentFromFeedItem: any
 }

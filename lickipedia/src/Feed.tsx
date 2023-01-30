@@ -226,6 +226,7 @@ export default function Feed(): JSX.Element {
           date: res.data[i].date,
         })
       }
+      setTimeout(() => setLoading(false), 4000)
       setFeedItemList({
         ...feedItemList,
         title: '',
@@ -238,7 +239,6 @@ export default function Feed(): JSX.Element {
         editorShown: false
       })
     })
-    setTimeout(() => setLoading(false), 3000)
   }
 
   return (
