@@ -2,7 +2,6 @@ import { renderAbc } from 'abcjs'
 import axios from 'axios'
 import { useState, useEffect } from 'react'
 import styles from '../styles/RightColumn.module.scss'
-import Loading from './Loading'
 import { feedItemType } from './util'
 
 export interface IRightColumnProps {

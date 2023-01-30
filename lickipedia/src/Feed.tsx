@@ -8,11 +8,6 @@ import RightColumn from './RightColumn'
 import LeftColumn from './LeftColumn'
 import { feedItemType, defaultFeedParams } from './util'
 
-// why UUID? Because other serialization functions
-// would cause different floating point problems and
-// other weird issues. giving each lick a UUID means
-// it will be easy to tell everything apart. We
-// can also make unique URLs with this later.
 import { v4 as uuidv4 } from 'uuid'
 import { AbcVisualParams, Editor } from 'abcjs'
 import axios from 'axios'
@@ -54,7 +49,7 @@ const defaultFeedState: IFeedState = {
 TODO : 
 DONE ==== 1. change tuples to keyed objects. Tuples are cringe. (specifically with FeedItemType)
 2. change the single STATE field into being a reducer, so it's a little cleaner. 
-3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
+DONE ==== 3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
 4. Fix the editor passive event listener problem. 
 DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to connect to it. 
   (This is not properly implimented yet. the postgres table doesnt check for dupes, so we need to fix that
@@ -64,10 +59,13 @@ DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to
     - Specifically, create an "admin" type of user who can DELETE and possibly even EDIT/PUT all posts.
     - perhaps allow users to EDIT/DELETE their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
 DONE ==== 7. Create a loading animation. Just something simple, like on the blog.  
-8. Change the FeedItem component from being ALL a single thing to each being their own instance of the component.
-9. Make good javadoc documentation for everything
+DONE ==== 8. Change the FeedItem component from being ALL a single thing to each being their own instance of the component.
+DONE ==== 9. Make good javadoc documentation for everything
 */
 
+/**
+ * Window. Highest parent other than Main.
+ */
 export default function Feed(): JSX.Element {
   const [feedItemList, setFeedItemList] = useState<IFeedState>(defaultFeedState)
   const [loading, setLoading] = useState<boolean>(false)
@@ -78,6 +76,9 @@ export default function Feed(): JSX.Element {
   })
   const [getParentFromFeedItem, setParentFromFeedItem] = useState({date: "", music_string: "", parent: "", uuid: ""});
 
+  /**
+   * Manages the abcjs::Editor.
+   */
   useEffect(() => {
     new Editor('music', {
       canvas_id: 'paper',
@@ -86,11 +87,17 @@ export default function Feed(): JSX.Element {
     })
   }, [feedItemList.editorShown])
 
+  /**
+   * Refreshes the feed on reload.
+   */
   useEffect(() => {
     setLoading(true)
     refreshFeed()
-  }, [feedItemList.savedNotation])
+  }, [])
 
+  /**
+   * Manages login state across components.
+   */
   useEffect(() => {
     if (parentLoginInfo.isLoggedIn) {
       axios
@@ -103,7 +110,10 @@ export default function Feed(): JSX.Element {
     }
   }, [parentLoginInfo])
 
-  function handleChange(event: { target: { name: string; value: any } }): void {
+  /**
+   * Manages all R/W text areas.
+   */
+  function handleChange(event: { target: { name: string; value: string } }): void {
     const target = event.target
     const name = target.name
     setFeedItemList({
@@ -112,9 +122,11 @@ export default function Feed(): JSX.Element {
     })
   }
 
-  // this formats a UUID, a tuneString, the default parameters;
-  // and a locale string which gets sent into the history
-  // to be sent into the FeedItems.
+  /**
+   * Correctly formats a UUID, music_string, params,
+   * and a date string. This is then sent into the history
+   * stack to be sent into the FeedItems.
+   */
   function handleSubmit(event: { preventDefault: () => void }): void {
     setLoading(true)
     let newMusicString: string = `T:${feedItemList.title}\nM:4/4\nC:${feedItemList.composer}\nK:${feedItemList.key} clef=${feedItemList.Clef}\n${feedItemList.music}`
@@ -151,6 +163,14 @@ export default function Feed(): JSX.Element {
   // this takes the saved licks from the FeedItem component and sends them to be state,
   // so they can be sent to the RightColumn.
   // there is almost certainly a MUCH more efficent way to do this...
+
+  /**
+   * Handles the "save" button from the FeedItems and manages 
+   * them across components. 
+   * 
+   * @todo everything below the ELSE statement handles when logged in.
+   * That's all broken. Fix it.
+   */
   function retrieveSavedLicks(id: string): void {
     if (!parentLoginInfo.isLoggedIn) {
       let newSavedNotation: feedItemType[] = [...feedItemList.savedNotation]
@@ -177,6 +197,7 @@ export default function Feed(): JSX.Element {
           email: parentLoginInfo.email,
         })
         .then((res) => {
+          console.log(res.data)
           if (!feedItemList.savedLicks.includes(parsePostgres(res.data[0].saved_licks)[0])) {
             feedItemList.history.forEach((j) => {
               if (!feedItemList.savedLicks.includes(j.uuid)) {
@@ -214,6 +235,9 @@ export default function Feed(): JSX.Element {
     })
   }
 
+  /**
+   * Refreshes the feed by calling the PostgresDB.
+   */
   const refreshFeed = (): void => {
     axios.get('http://127.0.0.1:8000/api/licks').then((res) => {
       let newhist: feedItemType[] = []
@@ -226,7 +250,7 @@ export default function Feed(): JSX.Element {
           date: res.data[i].date,
         })
       }
-      setTimeout(() => setLoading(false), 4000)
+      setTimeout(() => setLoading(false), 1500)
       setFeedItemList({
         ...feedItemList,
         title: '',
@@ -337,14 +361,17 @@ export default function Feed(): JSX.Element {
           {loading ? (
             <Loading />
           ) : (
+            feedItemList.history.map((i) => (
             <FeedItem
-              historyFeed={feedItemList.history}
+              key={i.uuid}
+              feedItemMember={i}
               parserParams={defaultFeedParams}
               retrieveSavedLicks={retrieveSavedLicks}
               recieveFork={recieveFork}
               refresh={refreshFeed}
               getParentFromFeedItem={setParentFromFeedItem}
             />
+            ))
           )}
         </div>
       </div>
