@@ -23,8 +23,8 @@ soon, there will be
 there will be more cool stuff to come, as well!
 
 ## want to try ? 
-i'm currently having some issues getting everything deployed properly (vercel having some issues at compile time with the abcjs api...), so if you'd like to try the app, just download the repo and run the 'npm run dev' script. everything should work just fine!
+i'm currently having some issues getting everything deployed properly (vercel having some issues at compile time with the abcjs api...). I may just ship it soon as an electron app so it can also just run locally and save to the user's hard drive as well as connect to a global postgres db.
 
-in the meantime, i'm thinking about just moving the app to vite and deploying it on github pages as a SPA. we'll see. anyway.
+in the meantime, i'm in the process of moving the app to vite and deploying it on github pages as a SPA. we'll see. anyway.
 
 thanks, and happy practicing! 
