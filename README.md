@@ -5,7 +5,7 @@ made possible through the wonders of the [abc music notation](https://abcnotatio
 
 ![image](https://user-images.githubusercontent.com/79169638/199057720-836f78f7-b2f9-416e-adcd-e06d7c387581.png)
 
-built with next.js and typescript
+built with ~next.js~ vite and typescript
 
 ## features 
 currently, there is 
