@@ -7,6 +7,19 @@ made possible through the wonders of the [abc music notation](https://abcnotatio
 
 built with ~next.js~ vite and typescript
 
+## TODO (for basic responsivity and aesthetics)
+# HTML
+1. Create an SVG Logo
+2. Build an Admin backend
+3. Ensure strong SEO
+
+# CSS
+1. Ensure good mobile experience
+2. Check naming
+3. Enhance responsivity
+4. Create color schemes for registered users
+
+
 ## features 
 currently, there is 
 1. a fairly robust collapsable in-browser editor for composing your own music in real time
