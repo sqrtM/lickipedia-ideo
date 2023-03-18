@@ -43,7 +43,9 @@
     /* Required for Safari */
     position: sticky;
     top: 0;
-    color:#03DAC6
+    color:#03DAC6;
+
+    text-decoration: underline dotted;
 }
 
 .logininfo {
