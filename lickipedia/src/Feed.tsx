@@ -177,7 +177,7 @@ export default function Feed(): JSX.Element {
       if (!feedItemList.savedLicks.includes(id)) {
         feedItemList.history.forEach((j) => {
           if (!feedItemList.savedLicks.includes(j.uuid)) {
-            newSavedNotation.unshift(j)
+            newSavedNotation.push(j)
           }
         })
         setFeedItemList({

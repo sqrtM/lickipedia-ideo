@@ -1,19 +1,21 @@
 #LeftColumn {
     display: flex;
-  
+    align-content: space-around;
     justify-content: center;
     justify-items: center;
     align-self: baseline;
     /* Required for Safari */
     position: -webkit-sticky;
     position: sticky;
-    top: 0;
+    top: 100px;
   }
   
   .title {
     /* Required for Safari */
     font-size: x-large;
+    
     position: -webkit-sticky;
     position: sticky;
-    top: 0;
+    top: 30px;
+    rotate: 270deg;
   }

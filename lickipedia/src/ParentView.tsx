@@ -61,7 +61,6 @@ export default function (props: IAppProps): JSX.Element {
       axios
         .post("http://127.0.0.1:8000/api/getLick", { uuid: props.parentUuid })
         .then((res) => {
-          console.log(res.data[0]);
           if (res.data.length > 0) {
             renderAbc(
               `abcjs-result-${props.parentUuid + "-parent"}`,
