@@ -11,6 +11,8 @@ export type feedItemType = {
     date: string
 };
 
+export type LoginState = { isLoggedIn: boolean, email: string, password: string, };
+
 export const renderAbcNotation = (ID: string, abcNotation: string, parserParams: abc.AbcVisualParams): void => {
     abc.renderAbc(`abcjs-result-${ID}`, abcNotation, parserParams);
 }

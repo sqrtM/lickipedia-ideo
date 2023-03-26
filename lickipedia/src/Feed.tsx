@@ -66,7 +66,7 @@ DONE ==== 9. Make good javadoc documentation for everything
 /**
  * Window. Highest parent other than Main.
  */
-export default function Feed(): JSX.Element {
+export default function (): JSX.Element {
   const [feedItemList, setFeedItemList] = useState<IFeedState>(defaultFeedState)
   const [loading, setLoading] = useState<boolean>(false)
   const [parentLoginInfo, setParentLoginInfo] = useState({
