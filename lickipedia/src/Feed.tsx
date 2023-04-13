@@ -47,20 +47,10 @@ const defaultFeedState: IFeedState = {
 
 /*
 TODO : 
-DONE ==== 1. change tuples to keyed objects. Tuples are cringe. (specifically with FeedItemType)
 2. change the single STATE field into being a reducer, so it's a little cleaner. 
-DONE ==== 3. Either move the project to Vite or properly format it in Next. the current set up is inefficient. 
-4. Fix the editor passive event listener problem. 
-DONE ==== 5 (SEE NOTES). Create a USER sql table and re-write the RightColumn to connect to it. 
-  (This is not properly implimented yet. the postgres table doesnt check for dupes, so we need to fix that
-    also, the rendering only works on the most recent one. clean up the @retrieveSavedLick function so both
-    of these functionalities can be impimented.)
 6. Finish the CRUD commands.
     - Specifically, create an "admin" type of user who can DELETE and possibly even EDIT/PUT all posts.
     - perhaps allow users to EDIT/DELETE their own posts. maybe by saving the uuids of a user's posts and matching it against the post the user is attempting to edit. 
-DONE ==== 7. Create a loading animation. Just something simple, like on the blog.  
-DONE ==== 8. Change the FeedItem component from being ALL a single thing to each being their own instance of the component.
-DONE ==== 9. Make good javadoc documentation for everything
 */
 
 /**
@@ -306,7 +296,7 @@ export default function (): JSX.Element {
                     onChange={handleChange}
                     checked={feedItemList.Clef === 'treble'}
                   />{' '}
-                  treble
+                  𝄞
                   <input
                     type="radio"
                     name="Clef"
@@ -314,7 +304,7 @@ export default function (): JSX.Element {
                     onChange={handleChange}
                     checked={feedItemList.Clef === 'bass'}
                   />{' '}
-                  bass
+                  𝄢
                 </span>
               </span>
               <div className={styles.inputRowCol}>
